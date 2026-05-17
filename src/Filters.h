@@ -12,7 +12,7 @@ class Filters
 {
 public:
     
-    Filters();
+    Filters() = default;
 
     void contrast(vips::VImage& image, const FiltersState& filters);
     void sharpness(vips::VImage& image, const FiltersState& filters);

@@ -46,6 +46,7 @@ pkg_check_modules(GTKMM REQUIRED IMPORTED_TARGET gtkmm-4.0)
 pkg_check_modules(VIPS REQUIRED IMPORTED_TARGET vips-cpp)
 
 add_executable(gtk_second
+  src/Filters.cpp
   src/sliders_frame.cpp
   src/image_frame.cpp
   src/hello_window.cpp

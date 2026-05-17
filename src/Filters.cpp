@@ -1,5 +1,6 @@
 #include "Filters.h"
 
+#include <cmath>
 
 void Filters::contrast(vips::VImage& image, const FiltersState& filters)
 {
@@ -17,11 +18,10 @@ void Filters::sharpness(vips::VImage& image, const FiltersState& filters)
     }
 }
 
-vips::VImage Filters::update(vips::VImage image, const FiltersState &filters)
+vips::VImage Filters::update(vips::VImage image, const FiltersState& filters)
 {
     sharpness(image, filters);
     contrast(image, filters);
 
     return image;
 }
-
