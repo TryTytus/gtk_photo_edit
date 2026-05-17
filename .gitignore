@@ -1,0 +1,8 @@
+.DS_Store
+build/
+build/*
+build/**
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json

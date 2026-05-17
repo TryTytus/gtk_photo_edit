@@ -1,0 +1,13 @@
+{
+  "lsp": {
+    "clangd": {
+      "binary": {
+        "path": "/Library/Developer/CommandLineTools/usr/bin/clangd",
+        "arguments": [
+          "--compile-commands-dir=/Users/trytytus/Projects/gtk_second/build",
+          "--query-driver=/usr/bin/c++"
+        ]
+      }
+    }
+  }
+}
