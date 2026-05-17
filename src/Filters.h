@@ -6,6 +6,7 @@ struct FiltersState
 {
     double contrast {};
     double sharpness {};
+    double sobel {};
 };
 
 class Filters
@@ -16,6 +17,7 @@ public:
 
     void contrast(vips::VImage& image, const FiltersState& filters);
     void sharpness(vips::VImage& image, const FiltersState& filters);
+    void sobel(vips::VImage& image, const FiltersState& filters);
 
     vips::VImage update(vips::VImage image, const FiltersState& filters);
 };

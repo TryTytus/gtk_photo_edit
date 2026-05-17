@@ -18,10 +18,20 @@ void Filters::sharpness(vips::VImage& image, const FiltersState& filters)
     }
 }
 
+void Filters::sobel(vips::VImage& image, const FiltersState& filters)
+{
+    if (filters.sobel > 0.001) {
+        const auto edges = image.sobel();
+        image = image.linear(1.0 - filters.sobel, 0.0)
+                    .add(edges.linear(filters.sobel, 0.0));
+    }
+}
+
 vips::VImage Filters::update(vips::VImage image, const FiltersState& filters)
 {
     sharpness(image, filters);
     contrast(image, filters);
+    sobel(image, filters);
 
     return image;
 }

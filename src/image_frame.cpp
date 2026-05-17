@@ -16,19 +16,14 @@
 #include <gtkmm/picture.h>
 #include <gtkmm/window.h>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 #include <vips/VImage8.h>
-#include <chrono>
 
 
 namespace {
-
-constexpr std::size_t kPreviewMaxEdge = 1600;
-constexpr std::size_t kPreviewJpegQuality = 82;
 
 void initialize_vips()
 {
@@ -102,18 +97,55 @@ void ImageFrame::on_choose_image_clicked()
 
 void ImageFrame::on_file_open(const Glib::RefPtr<Gio::AsyncResult>& result) 
 {
+    try {
+        const auto file = file_dialog_->open_finish(result);
+        const auto path = file->get_path();
 
-    const auto file = file_dialog_->open_finish(result);
-    const auto path = file->get_path();
+        if (path.empty()) {
+            return;
+        }
 
-    if (!path.empty()) {
-      label_.set_text(path);
-      std::cout << path << '\n';
+        label_.set_text(path);
+        std::cout << path << '\n';
+
+        auto start = std::chrono::high_resolution_clock::now();
+        orginal_ = vips::VImage::new_from_file(path.c_str());
+        render_current();
+
+        auto end = std::chrono::high_resolution_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            end - start
+        ).count();
+
+        std::cout << "Time to load image from file: " << ms << " ms \n";
+    } catch (const std::exception& error) {
+        std::cerr << "Image load failed: " << error.what() << '\n';
     }
+}
 
-    auto start = std::chrono::high_resolution_clock::now();
+void ImageFrame::set_contrast(double contrast)
+{
+    state_.contrast = std::clamp(contrast, 0.0, 1.0);
+    render_current();
+}
 
-    orginal_ = vips::VImage::new_from_file(path.c_str());
+void ImageFrame::set_sharpness(double intensity)
+{
+    state_.sharpness = std::clamp(intensity, 0.0, 1.0);
+    render_current();
+}
+
+void ImageFrame::set_sobel(double intensity)
+{
+    state_.sobel = std::clamp(intensity, 0.0, 1.0);
+    render_current();
+}
+
+void ImageFrame::render_current()
+{
+    if (!orginal_) {
+        return;
+    }
 
     current_ = filters_.update(*orginal_, state_);
 
@@ -121,22 +153,8 @@ void ImageFrame::on_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
     size_t size { 0 };
     current_->write_to_buffer(".png", &buffer, &size);
 
-    std::unique_ptr<void, decltype(&g_free)> buffer_guard(buffer, g_free);
-    const Glib::RefPtr<const Glib::Bytes> bytes =
-        Glib::wrap(g_bytes_new_take(buffer_guard.release(), size));
+    const auto bytes = Glib::Bytes::create(buffer, size);
+    g_free(buffer);
     auto texture = Gdk::Texture::create_from_bytes(bytes);
-
-    auto end = std::chrono::high_resolution_clock::now();
-
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-        end - start
-    ).count();
-
-    current_ = orginal_;
-    
-    std::cout << "Time to load image from file: " << ms << " ms \n";
-
     picture_.set_paintable(texture);
 }
-
-

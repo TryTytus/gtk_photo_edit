@@ -38,6 +38,7 @@ public:
     void set_contrast(double contrast);
     void set_sharpness(double intensity);
     void set_sobel(double intensity);
+    void render_current();
   
     Glib::RefPtr<Gtk::FileDialog> file_dialog_;
     Gtk::Box box_;
