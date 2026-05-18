@@ -1,4 +1,5 @@
 #include "image_frame.h"
+#include "Filters.h"
 
 #include <algorithm>
 #include <chrono>
@@ -43,7 +44,9 @@ ImageFrame::ImageFrame() :
   box_(Gtk::Orientation::VERTICAL, 12),
   label_("Hello, world!"),
   close_button_("Close"),
-  choose_image_button_("Choose image")
+  choose_image_button_("Choose image"),
+  filters_(Filters::getInstace()),
+  state_(FiltersState::getInstance())
 {
     initialize_vips();
 
@@ -109,7 +112,10 @@ void ImageFrame::on_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
         std::cout << path << '\n';
 
         auto start = std::chrono::high_resolution_clock::now();
-        orginal_ = vips::VImage::new_from_file(path.c_str());
+        filters_.orginal_ = vips::VImage::new_from_file(path.c_str());
+        Filters::rerender = [this]() {
+            render_current();
+        };
         render_current();
 
         auto end = std::chrono::high_resolution_clock::now();
@@ -143,15 +149,15 @@ void ImageFrame::set_sobel(double intensity)
 
 void ImageFrame::render_current()
 {
-    if (!orginal_) {
+    if (!filters_.orginal_) {
         return;
     }
 
-    current_ = filters_.update(*orginal_, state_);
+    filters_.current_ = filters_.update(*filters_.orginal_, state_);
 
     void* buffer = nullptr;
     size_t size { 0 };
-    current_->write_to_buffer(".png", &buffer, &size);
+    filters_.current_->write_to_buffer(".png", &buffer, &size);
 
     const auto bytes = Glib::Bytes::create(buffer, size);
     g_free(buffer);

@@ -18,4 +18,5 @@ private:
     Gtk::Box box_;
     ImageFrame image_frame_;
     SlidersFrame sliders_frame_;
+    FiltersState state_{};
 };

@@ -21,12 +21,6 @@
 #include "Filters.h"
 
 
-struct PreviewFilterState {
-    double contrast = 0.0;
-    double sharpness = 0.0;
-    double sobel = 0.0;
-};
-
 class ImageFrame : public Gtk::Box {
 public:
     ImageFrame();
@@ -50,8 +44,8 @@ public:
     std::optional<vips::VImage> current_;
 
     
-    Filters filters_ {};
-    FiltersState state_{};
+    Filters& filters_;
+    FiltersState& state_;
     
 
 };

@@ -1,6 +1,11 @@
 #include "hello_window.h"
+#include "image_frame.h"
+#include "sliders_frame.h"
 
-HelloWindow::HelloWindow() : box_(Gtk::Orientation::HORIZONTAL, 12)
+HelloWindow::HelloWindow() : 
+    box_(Gtk::Orientation::HORIZONTAL, 12),
+    image_frame_(),
+    sliders_frame_()
 {
   set_title("gtkmm Hello World");
   maximize();

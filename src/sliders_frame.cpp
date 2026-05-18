@@ -1,11 +1,13 @@
 #include "sliders_frame.h"
+#include "Filters.h"
 
 #include <glibmm/main.h>
 #include <gtkmm/label.h>
 #include <sigc++/functors/mem_fun.h>
 
 SlidersFrame::SlidersFrame()
-    : label_("Contrast"),
+    : state_(FiltersState::getInstance()),
+      label_("Contrast"),
       scale_(Gtk::Orientation::HORIZONTAL)
 {
     set_orientation(Gtk::Orientation::VERTICAL);
@@ -73,27 +75,34 @@ void SlidersFrame::set_sobel_changed_handler(std::function<void(double)> handler
 
 void SlidersFrame::on_scale_change()
 {
-    if (contrast_changed_handler_) {
-        debounce_apply(contrast_debounce_, contrast_changed_handler_, scale_.get_value());
-    }
+    state_.contrast = std::clamp(scale_.get_value(), 0.0, 1.0);
+    rerender();
+    // if (contrast_changed_handler_) {
+    //     debounce_apply(contrast_debounce_, contrast_changed_handler_, scale_.get_value());
+    // }
 }
 
 void SlidersFrame::on_sharpness_scale_change()
 {
-    if (sharpness_changed_handler_) {
-        debounce_apply(
-            sharpness_debounce_,
-            sharpness_changed_handler_,
-            sharpness_scale_.get_value()
-        );
-    }
+
+    state_.sharpness = std::clamp(sharpness_scale_.get_value(), 0.0, 1.0);
+    rerender();
+    // if (sharpness_changed_handler_) {
+    //     debounce_apply(
+    //         sharpness_debounce_,
+    //         sharpness_changed_handler_,
+    //         sharpness_scale_.get_value()
+    //     );
+    // }
 }
 
 void SlidersFrame::on_sobel_scale_change()
 {
-    if (sobel_changed_handler_) {
-        debounce_apply(sobel_debounce_, sobel_changed_handler_, sobel_scale_.get_value());
-    }
+    state_.sobel = std::clamp(sobel_scale_.get_value(), 0.0, 1.0);
+    rerender();
+    // if (sobel_changed_handler_) {
+    //     debounce_apply(sobel_debounce_, sobel_changed_handler_, sobel_scale_.get_value());
+    // }
 }
 
 void SlidersFrame::debounce_apply(DebounceState& state,
@@ -128,5 +137,14 @@ void SlidersFrame::disconnect_debounce_handlers()
     }
     if (sobel_debounce_.connection.connected()) {
         sobel_debounce_.connection.disconnect();
+    }
+}
+
+
+void SlidersFrame::rerender()
+{
+    if (Filters::rerender)
+    {
+        (*Filters::rerender)();
     }
 }

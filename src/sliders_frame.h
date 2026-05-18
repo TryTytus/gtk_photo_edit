@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Filters.h"
 #include <gtkmm/box.h>
 #include <gtkmm/label.h>
 #include <gtkmm/scale.h>
@@ -11,6 +12,8 @@ class SlidersFrame : public Gtk::Box
 public:
     SlidersFrame();
     ~SlidersFrame() override;
+
+    FiltersState& state_;
 
     void set_contrast_changed_handler(std::function<void(double)> handler);
     void set_sharpness_changed_handler(std::function<void(double)> handler);
@@ -35,6 +38,9 @@ private:
     void on_scale_change();
     void on_sharpness_scale_change();
     void on_sobel_scale_change();
+
+    void rerender();
+
 
     Gtk::Label label_;
     Gtk::Scale scale_;

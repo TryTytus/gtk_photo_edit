@@ -1,6 +1,30 @@
 #include "Filters.h"
-
 #include <cmath>
+
+
+FiltersState* FiltersState::self_static_ =  nullptr;
+Filters* Filters::self_static_ =  nullptr;
+
+FiltersState& FiltersState::getInstance()
+{
+    if (self_static_ == nullptr)
+    {
+        self_static_ = new FiltersState();
+    }
+
+    return *self_static_;
+}
+
+Filters& Filters::getInstace()
+{
+    if (self_static_ == nullptr)
+    {
+        self_static_ = new Filters();
+    }
+
+    return *self_static_;
+}
+
 
 void Filters::contrast(vips::VImage& image, const FiltersState& filters)
 {
