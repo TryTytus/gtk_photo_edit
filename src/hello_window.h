@@ -14,6 +14,8 @@ class HelloWindow : public Gtk::Window {
 public:
   HelloWindow();
 
+  void setCss();
+
 private:
     Gtk::Box box_;
     ImageFrame image_frame_;

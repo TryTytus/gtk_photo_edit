@@ -35,6 +35,12 @@ SlidersFrame::SlidersFrame()
 
     sobel_scale_.set_size_request(300, 50);
 
+    brightness_scale_.set_range(0.0, 1.0);
+    brightness_scale_.set_value(0.0);
+    brightness_scale_.set_digits(2);
+
+    brightness_scale_.set_size_request(300, 50);
+
     scale_.signal_value_changed().connect(
         sigc::mem_fun(*this, &SlidersFrame::on_scale_change)
     );
@@ -46,11 +52,16 @@ SlidersFrame::SlidersFrame()
     sobel_scale_.signal_value_changed().connect(
         sigc::mem_fun(*this, &SlidersFrame::on_sobel_scale_change)
     );
+
+    brightness_scale_.signal_value_changed().connect(
+        sigc::mem_fun(*this, &SlidersFrame::on_brightness_scale_change)
+    );
     
     append(label_);
     append(scale_);
     append(sharpness_scale_);
     append(sobel_scale_);
+    append(brightness_scale_);
 }
 
 
@@ -73,6 +84,11 @@ void SlidersFrame::on_sobel_scale_change()
     rerender();
 }
 
+void SlidersFrame::on_brightness_scale_change()
+{
+    state_.brightness = std::clamp(brightness_scale_.get_value(), 0.0, 1.0);
+    rerender();
+}
 
 void SlidersFrame::rerender()
 {
@@ -81,3 +97,4 @@ void SlidersFrame::rerender()
         (*Filters::rerender)();
     }
 }
+

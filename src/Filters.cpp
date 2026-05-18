@@ -51,11 +51,21 @@ void Filters::sobel(vips::VImage& image, const FiltersState& filters)
     }
 }
 
+void Filters::brightness(vips::VImage &image, const FiltersState &filters)
+{
+    if (filters.brightness > 0.01)
+    {
+        double offset = filters.brightness * 100.0;
+        image = image.linear(1.0, offset);
+    }
+}
+
 vips::VImage Filters::update(vips::VImage image, const FiltersState& filters)
 {
     sharpness(image, filters);
     contrast(image, filters);
     sobel(image, filters);
+    brightness(image, filters);
 
     return image;
 }

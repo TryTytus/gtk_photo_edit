@@ -19,6 +19,7 @@ private:
     void on_scale_change();
     void on_sharpness_scale_change();
     void on_sobel_scale_change();
+    void on_brightness_scale_change();
 
     void rerender();
 
@@ -26,5 +27,6 @@ private:
     Gtk::Scale scale_;
     Gtk::Scale sharpness_scale_;
     Gtk::Scale sobel_scale_;
+    Gtk::Scale brightness_scale_;
     
 };
