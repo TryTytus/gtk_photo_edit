@@ -2,8 +2,8 @@
 #include <cmath>
 
 
-FiltersState* FiltersState::self_static_ =  nullptr;
-Filters* Filters::self_static_ =  nullptr;
+FiltersState* FiltersState::self_static_ = nullptr;
+Filters* Filters::self_static_ = nullptr;
 
 FiltersState& FiltersState::getInstance()
 {

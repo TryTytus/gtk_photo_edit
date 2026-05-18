@@ -53,33 +53,11 @@ SlidersFrame::SlidersFrame()
     append(sobel_scale_);
 }
 
-SlidersFrame::~SlidersFrame()
-{
-    disconnect_debounce_handlers();
-}
-
-void SlidersFrame::set_contrast_changed_handler(std::function<void(double)> handler)
-{
-    contrast_changed_handler_ = std::move(handler);
-}
-
-void SlidersFrame::set_sharpness_changed_handler(std::function<void(double)> handler)
-{
-    sharpness_changed_handler_ = std::move(handler);
-}
-
-void SlidersFrame::set_sobel_changed_handler(std::function<void(double)> handler)
-{
-    sobel_changed_handler_ = std::move(handler);
-}
 
 void SlidersFrame::on_scale_change()
 {
     state_.contrast = std::clamp(scale_.get_value(), 0.0, 1.0);
     rerender();
-    // if (contrast_changed_handler_) {
-    //     debounce_apply(contrast_debounce_, contrast_changed_handler_, scale_.get_value());
-    // }
 }
 
 void SlidersFrame::on_sharpness_scale_change()
@@ -87,57 +65,12 @@ void SlidersFrame::on_sharpness_scale_change()
 
     state_.sharpness = std::clamp(sharpness_scale_.get_value(), 0.0, 1.0);
     rerender();
-    // if (sharpness_changed_handler_) {
-    //     debounce_apply(
-    //         sharpness_debounce_,
-    //         sharpness_changed_handler_,
-    //         sharpness_scale_.get_value()
-    //     );
-    // }
 }
 
 void SlidersFrame::on_sobel_scale_change()
 {
     state_.sobel = std::clamp(sobel_scale_.get_value(), 0.0, 1.0);
     rerender();
-    // if (sobel_changed_handler_) {
-    //     debounce_apply(sobel_debounce_, sobel_changed_handler_, sobel_scale_.get_value());
-    // }
-}
-
-void SlidersFrame::debounce_apply(DebounceState& state,
-                                  const std::function<void(double)>& handler,
-                                  double value)
-{
-    state.pending_value = value;
-    state.pending_handler = handler;
-
-    if (state.connection.connected()) {
-        state.connection.disconnect();
-    }
-
-    state.connection = Glib::signal_timeout().connect(
-        [&state] {
-            if (state.pending_handler) {
-                state.pending_handler(state.pending_value);
-            }
-            return false;
-        },
-        30
-    );
-}
-
-void SlidersFrame::disconnect_debounce_handlers()
-{
-    if (contrast_debounce_.connection.connected()) {
-        contrast_debounce_.connection.disconnect();
-    }
-    if (sharpness_debounce_.connection.connected()) {
-        sharpness_debounce_.connection.disconnect();
-    }
-    if (sobel_debounce_.connection.connected()) {
-        sobel_debounce_.connection.disconnect();
-    }
 }
 
 

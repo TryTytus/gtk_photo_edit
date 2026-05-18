@@ -152,7 +152,8 @@ void ImageFrame::render_current()
     if (!filters_.orginal_) {
         return;
     }
-
+    auto start = std::chrono::high_resolution_clock::now();
+    
     filters_.current_ = filters_.update(*filters_.orginal_, state_);
 
     void* buffer = nullptr;
@@ -163,4 +164,11 @@ void ImageFrame::render_current()
     g_free(buffer);
     auto texture = Gdk::Texture::create_from_bytes(bytes);
     picture_.set_paintable(texture);
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        end - start
+    ).count();
+
+    std::cout << "Time to load image from file: " << ms << " ms \n";
 }
