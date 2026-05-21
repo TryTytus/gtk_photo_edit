@@ -18,8 +18,20 @@ public:
   void setCss();
 
 private:
+    Gtk::Overlay overlay_;
+    Gtk::DrawingArea background_;
+    
     Gtk::Grid box_;
     ImageFrame image_frame_;
     SlidersFrame sliders_frame_;
     FiltersState state_{};
+
+    
+
+    void draw_dots_background(
+        const Cairo::RefPtr<Cairo::Context>& cr,
+        int width,
+        int height
+    );
+
 };
