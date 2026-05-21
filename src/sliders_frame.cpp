@@ -11,15 +11,13 @@ SlidersFrame::SlidersFrame()
       scale_(Gtk::Orientation::HORIZONTAL)
 {
     set_orientation(Gtk::Orientation::VERTICAL);
-    set_spacing(8);
-    set_margin_top(24);
-    set_margin_bottom(24);
-    set_margin_start(24);
-    set_margin_end(24);
 
     scale_.set_range(0.0, 1.0);
     scale_.set_value(0.0);
     scale_.set_digits(2);
+
+    add_css_class("controls-panel");
+
 
     scale_.set_size_request(300, 50);
 
@@ -41,6 +39,28 @@ SlidersFrame::SlidersFrame()
 
     brightness_scale_.set_size_request(300, 50);
 
+    
+
+    exposure_scale.set_range(0.0, 1.0);
+    exposure_scale.set_value(0.0);
+    exposure_scale.set_digits(2);
+
+    exposure_scale.set_size_request(300, 50);
+
+
+    blur_scale_.set_range(0.0, 1.0);
+    blur_scale_.set_value(0.0);
+    blur_scale_.set_digits(2);
+
+    blur_scale_.set_size_request(300, 50);
+
+
+    gamma_scale_.set_range(0.0, 1.0);
+    gamma_scale_.set_value(0.0);
+    gamma_scale_.set_digits(2);
+
+    brightness_scale_.set_size_request(300, 50);
+
     scale_.signal_value_changed().connect(
         sigc::mem_fun(*this, &SlidersFrame::on_scale_change)
     );
@@ -56,12 +76,29 @@ SlidersFrame::SlidersFrame()
     brightness_scale_.signal_value_changed().connect(
         sigc::mem_fun(*this, &SlidersFrame::on_brightness_scale_change)
     );
+
+    exposure_scale.signal_value_changed().connect(
+        sigc::mem_fun(*this, &SlidersFrame::on_exposure_scale_change)
+    );
+
+    blur_scale_.signal_value_changed().connect(
+        sigc::mem_fun(*this, &SlidersFrame::on_blur_scale_change)
+    );
+
+    gamma_scale_.signal_value_changed().connect(
+        sigc::mem_fun(*this, &SlidersFrame::on_gamma_scale_change)
+    );
+
+    add_css_class("image-bg");
     
     append(label_);
     append(scale_);
     append(sharpness_scale_);
     append(sobel_scale_);
     append(brightness_scale_);
+    append(exposure_scale);
+    append(gamma_scale_);
+    append(blur_scale_);
 }
 
 
@@ -87,6 +124,26 @@ void SlidersFrame::on_sobel_scale_change()
 void SlidersFrame::on_brightness_scale_change()
 {
     state_.brightness = std::clamp(brightness_scale_.get_value(), 0.0, 1.0);
+    rerender();
+}
+
+
+void SlidersFrame::on_exposure_scale_change()
+{
+    state_.exposure = std::clamp(exposure_scale.get_value(), 0.0, 1.0);
+    rerender();
+}
+
+
+void SlidersFrame::on_blur_scale_change()
+{
+    state_.blur = std::clamp(blur_scale_.get_value(), 0.0, 1.0);
+    rerender();
+}
+
+void SlidersFrame::on_gamma_scale_change()
+{
+    state_.gamma = std::clamp(gamma_scale_.get_value(), 0.0, 1.0);
     rerender();
 }
 

@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 #include <vips/VImage8.h>
+#include <vips/resample.h>
 
 
 namespace {
@@ -39,6 +40,8 @@ void initialize_vips()
 
 }
 
+int MAX_IMAGE_HEIGHT = 1920;
+
 ImageFrame::ImageFrame() :
   file_dialog_(Gtk::FileDialog::create()),
   box_(Gtk::Orientation::VERTICAL, 12),
@@ -54,11 +57,16 @@ ImageFrame::ImageFrame() :
     choose_image_button_.signal_clicked().connect(
         sigc::mem_fun(*this, &ImageFrame::on_choose_image_clicked)
     );
+
+    picture_.set_hexpand(true);
+    picture_.set_vexpand(true);
+    picture_.set_halign(Gtk::Align::FILL);
+    picture_.set_valign(Gtk::Align::FILL);
+    
+    picture_.set_can_shrink(true);
+    picture_.set_content_fit(Gtk::ContentFit::CONTAIN);
   
-    box_.set_margin_top(24);
-    box_.set_margin_bottom(24);
-    box_.set_margin_start(24);
-    box_.set_margin_end(24);
+    box_.set_margin(24);
     box_.set_valign(Gtk::Align::CENTER);
     box_.set_halign(Gtk::Align::CENTER);
   
@@ -112,7 +120,15 @@ void ImageFrame::on_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
         std::cout << path << '\n';
 
         auto start = std::chrono::high_resolution_clock::now();
-        filters_.orginal_ = vips::VImage::new_from_file(path.c_str());
+        // filters_.orginal_ = vips::VImage::new_from_file(path.c_str());
+        filters_.orginal_ = vips::VImage::thumbnail(
+            path.c_str(),
+            MAX_IMAGE_HEIGHT,
+            vips::VImage::option()
+            ->set("height", MAX_IMAGE_HEIGHT)
+            ->set("size", VIPS_SIZE_DOWN)
+        ).copy_memory();
+        
         Filters::rerender = [this]() {
             render_current();
         };
@@ -170,5 +186,5 @@ void ImageFrame::render_current()
         end - start
     ).count();
 
-    std::cout << "Time to load image from file: " << ms << " ms \n";
+    std::cout << "Time to load: " << ms << " ms \n";
 }

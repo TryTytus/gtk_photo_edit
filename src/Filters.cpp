@@ -1,5 +1,6 @@
 #include "Filters.h"
 #include <cmath>
+#include <vips/VImage8.h>
 
 
 FiltersState* FiltersState::self_static_ = nullptr;
@@ -60,12 +61,45 @@ void Filters::brightness(vips::VImage &image, const FiltersState &filters)
     }
 }
 
+void Filters::exposure(vips::VImage &image, const FiltersState &filters)
+{
+    if (filters.exposure > 0.01)
+    {
+        double factor = std::pow(2.0, filters.exposure);
+        image = image * factor;
+    }
+}
+
+void Filters::blur(vips::VImage &image, const FiltersState &filters)
+{
+    if (filters.blur > 0.01)
+    {
+        double sigma = filters.blur * 10.0;
+        image = image.gaussblur(sigma);
+    }
+}
+
+void Filters::gamma(vips::VImage &image, const FiltersState &filters)
+{
+    double exponent = std::pow(2.0, -filters.gamma);
+    image = image.gamma(vips::VImage::option()
+        ->set("exponent", exponent));
+
+}
+
+
+
+
 vips::VImage Filters::update(vips::VImage image, const FiltersState& filters)
 {
     sharpness(image, filters);
     contrast(image, filters);
     sobel(image, filters);
     brightness(image, filters);
+
+    exposure(image, filters);
+    blur(image, filters);
+    gamma(image, filters);
 
     return image;
 }

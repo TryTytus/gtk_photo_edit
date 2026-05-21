@@ -14,6 +14,13 @@ public:
     double sharpness {};
     double sobel {};
     double brightness {};
+
+    double exposure {};
+    double gamma {};
+    double black_point {};
+    double white_point {};
+    double blur {};
+    
 };
 
 class Filters
@@ -27,6 +34,11 @@ public:
     void sharpness(vips::VImage& image, const FiltersState& filters);
     void sobel(vips::VImage& image, const FiltersState& filters);
     void brightness(vips::VImage& image, const FiltersState& filters);
+
+    void exposure(vips::VImage& image, const FiltersState& filters);
+    void gamma(vips::VImage& image, const FiltersState& filters);
+    void black_white_point(vips::VImage& image, const FiltersState& filters);
+    void blur(vips::VImage& image, const FiltersState& filters);
 
     vips::VImage update(vips::VImage image, const FiltersState& filters);
 
