@@ -26,7 +26,9 @@ public:
     ImageFrame();
     ~ImageFrame() override;
 
-    void on_close_clicked();
+    void on_save_clicked();
+    void on_save_file_open(const Glib::RefPtr<Gio::AsyncResult>& result);
+    void on_save_image_clicked();
     void on_choose_image_clicked();
     void on_file_open(const Glib::RefPtr<Gio::AsyncResult>& result);
     void set_contrast(double contrast);
@@ -35,10 +37,10 @@ public:
     void render_current();
   
     Glib::RefPtr<Gtk::FileDialog> file_dialog_;
+    Glib::RefPtr<Gtk::FileDialog> save_dialog_;
     Gtk::Box box_;
-    Gtk::Label label_;
-    Gtk::Button close_button_;
     Gtk::Button choose_image_button_;
+    Gtk::Button save_image_button_;
     Gtk::Picture picture_;
     std::optional<vips::VImage> orginal_;
     std::optional<vips::VImage> current_;

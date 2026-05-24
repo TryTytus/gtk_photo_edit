@@ -7,7 +7,13 @@
 
 SlidersFrame::SlidersFrame()
     : state_(FiltersState::getInstance()),
-      label_("Contrast"),
+      label_contrast_("Contrast"),
+      label_sharpness_("Sharpness"),
+      label_brightness_("Brightness"),
+      label_sobel_("Sobel effect"),
+      label_exposure_("Exposure"),
+      label_gamma_("Gamma"),
+      label_blur_("Blur"),
       scale_(Gtk::Orientation::HORIZONTAL)
 {
     set_orientation(Gtk::Orientation::VERTICAL);
@@ -91,13 +97,19 @@ SlidersFrame::SlidersFrame()
 
     add_css_class("image-bg");
     
-    append(label_);
+    append(label_contrast_);
     append(scale_);
+    append(label_sharpness_);
     append(sharpness_scale_);
+    append(label_sobel_);
     append(sobel_scale_);
+    append(label_brightness_);
     append(brightness_scale_);
+    append(label_exposure_);
     append(exposure_scale);
+    append(label_gamma_);
     append(gamma_scale_);
+    append(label_blur_);
     append(blur_scale_);
 }
 

@@ -9,7 +9,7 @@ HelloWindow::HelloWindow()
       image_frame_(),
       sliders_frame_()
 {
-    set_title("gtkmm Hello World");
+    set_title("Photo editor");
     maximize();
 
     background_.set_hexpand(true);
@@ -129,8 +129,8 @@ void HelloWindow::draw_dots_background(
     cr->set_source_rgb(0.06, 0.07, 0.09);
     cr->paint();
 
-    constexpr double spacing = 22.0;
-    constexpr double radius = 1.4;
+    constexpr double spacing = 15.0;
+    constexpr double radius = 1.1;
     constexpr double tau = 6.28318530718;
 
     cr->set_source_rgba(1.0, 1.0, 1.0, 0.13);

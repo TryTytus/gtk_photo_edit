@@ -14,9 +14,11 @@
 #include <glibmm/bytes.h>
 #include <glibmm/error.h>
 #include <gtkmm/error.h>
+#include <gtkmm/filedialog.h>
 #include <gtkmm/picture.h>
 #include <gtkmm/window.h>
 #include <iostream>
+#include <sigc++/functors/mem_fun.h>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -44,10 +46,10 @@ int MAX_IMAGE_HEIGHT = 1920;
 
 ImageFrame::ImageFrame() :
   file_dialog_(Gtk::FileDialog::create()),
+  save_dialog_(Gtk::FileDialog::create()),
   box_(Gtk::Orientation::VERTICAL, 12),
-  label_("Hello, world!"),
-  close_button_("Close"),
   choose_image_button_("Choose image"),
+  save_image_button_("Save"),
   filters_(Filters::getInstace()),
   state_(FiltersState::getInstance())
 {
@@ -56,6 +58,14 @@ ImageFrame::ImageFrame() :
     file_dialog_->set_title("Choose an image");
     choose_image_button_.signal_clicked().connect(
         sigc::mem_fun(*this, &ImageFrame::on_choose_image_clicked)
+    );
+
+    save_dialog_->set_title("Save image as");
+    save_dialog_->set_initial_name("edited-image.jpg");
+    save_dialog_->set_accept_label("Save");
+    
+    save_image_button_.signal_clicked().connect(
+        sigc::mem_fun(*this, &ImageFrame::on_save_clicked)
     );
 
     picture_.set_hexpand(true);
@@ -70,29 +80,17 @@ ImageFrame::ImageFrame() :
     box_.set_valign(Gtk::Align::CENTER);
     box_.set_halign(Gtk::Align::CENTER);
   
-    label_.set_halign(Gtk::Align::CENTER);
     choose_image_button_.set_halign(Gtk::Align::CENTER);
-    close_button_.set_halign(Gtk::Align::CENTER);
-    close_button_.signal_clicked().connect(
-        sigc::mem_fun(*this, &ImageFrame::on_close_clicked)
-    );
+    save_image_button_.set_halign(Gtk::Align::CENTER);
   
     box_.append(picture_);
-    box_.append(label_);
     box_.append(choose_image_button_);
-    box_.append(close_button_);
+    box_.append(save_image_button_);
     append(box_);
 }
 
 ImageFrame::~ImageFrame()
 {
-}
-
-void ImageFrame::on_close_clicked()
-{
-  if (auto* window = dynamic_cast<Gtk::Window*>(get_root())) {
-    window->close();
-  }
 }
 
 void ImageFrame::on_choose_image_clicked() 
@@ -106,6 +104,17 @@ void ImageFrame::on_choose_image_clicked()
   }
 }
 
+void ImageFrame::on_save_clicked()
+{
+    const auto callback = sigc::mem_fun(*this, &ImageFrame::on_save_file_open);
+  
+    if (auto* window = dynamic_cast<Gtk::Window*>(get_root())) {
+      file_dialog_->open(*window, callback);
+    } else {
+      file_dialog_->open(callback);
+    }
+}
+
 void ImageFrame::on_file_open(const Glib::RefPtr<Gio::AsyncResult>& result) 
 {
     try {
@@ -116,7 +125,6 @@ void ImageFrame::on_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
             return;
         }
 
-        label_.set_text(path);
         std::cout << path << '\n';
 
         auto start = std::chrono::high_resolution_clock::now();
@@ -187,4 +195,28 @@ void ImageFrame::render_current()
     ).count();
 
     std::cout << "Time to load: " << ms << " ms \n";
+}
+
+void ImageFrame::on_save_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
+{
+    auto file = save_dialog_->save_finish(result);
+
+    if (!file)
+    {
+        return;
+    }
+
+    auto path = file->get_path();
+
+    if (path.empty())
+    {
+        return;
+    }
+
+    current_->write_to_file(path.c_str());
+}
+
+void ImageFrame::on_save_image_clicked()
+{
+    
 }

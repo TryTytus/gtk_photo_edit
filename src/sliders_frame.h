@@ -27,13 +27,19 @@ private:
 
     void rerender();
 
-    Gtk::Label label_;
+    Gtk::Label label_contrast_;
     Gtk::Scale scale_;
+    Gtk::Label label_sharpness_;
     Gtk::Scale sharpness_scale_;
+    Gtk::Label label_sobel_;
     Gtk::Scale sobel_scale_;
+    Gtk::Label label_brightness_;
     Gtk::Scale brightness_scale_;
+    Gtk::Label label_exposure_;
     Gtk::Scale exposure_scale;
+    Gtk::Label label_gamma_;
     Gtk::Scale gamma_scale_;
+    Gtk::Label label_blur_;
     Gtk::Scale blur_scale_;
     
     
