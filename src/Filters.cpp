@@ -209,12 +209,36 @@ void Filters::shadows(vips::VImage& image, const FiltersState& filters)
 
 void Filters::white_black(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (std::abs(filters.black) < 0.01 && std::abs(filters.white) < 0.01)
+        return;
+
+    const double black_point = filters.black * 80.0;
+    const double white_point = 255.0 - filters.white * 80.0;
+
+    if (white_point <= black_point + 1.0)
+        return;
+
+    const double scale = 255.0 / (white_point - black_point);
+    const double offset = -black_point * scale;
+
+    image = image.linear(scale, offset).cast(VIPS_FORMAT_UCHAR);
+
+
 }
 void Filters::vibrance(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (std::abs(filters.vibrance) > 0.01) {
+        auto b = image.bandsplit();
+
+        auto gray = b[0] * 0.299 + b[1] * 0.587 + b[2] * 0.114;
+        auto gray3 = gray.bandjoin(gray).bandjoin(gray);
+
+        double factor = 1.0 + filters.vibrance * 1.2;
+
+        image = gray3 + (image - gray3) * factor;
+    }
 }
+
 void Filters::vignette(vips::VImage& image, const FiltersState& filters)
 {
     if (std::abs(filters.vignette) > 0.01) {
