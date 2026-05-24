@@ -21,6 +21,18 @@ public:
     double white_point {};
     double blur {};
     
+    double saturation {};
+    double warmth {};
+    double tint {};
+    double highlight {};
+    double shadows {};
+    double black {};
+    double white {};
+    double vibrance {};
+    double vignette {};
+    double clarity {};
+    double noise {};
+    
 };
 
 class Filters
@@ -39,6 +51,17 @@ public:
     void gamma(vips::VImage& image, const FiltersState& filters);
     void black_white_point(vips::VImage& image, const FiltersState& filters);
     void blur(vips::VImage& image, const FiltersState& filters);
+
+    void saturation(vips::VImage& image, const FiltersState& filters);
+    void warmth(vips::VImage& image, const FiltersState& filters);
+    void tint(vips::VImage& image, const FiltersState& filters);
+    void highlight(vips::VImage& image, const FiltersState& filters);
+    void shadows(vips::VImage& image, const FiltersState& filters);
+    void white_black(vips::VImage& image, const FiltersState& filters);
+    void vibrance(vips::VImage& image, const FiltersState& filters);
+    void vignette(vips::VImage& image, const FiltersState& filters);
+    void clarity(vips::VImage& image, const FiltersState& filters);
+    void noise(vips::VImage& image, const FiltersState& filters);
 
     vips::VImage update(vips::VImage image, const FiltersState& filters);
 

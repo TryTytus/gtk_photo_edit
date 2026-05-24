@@ -1,6 +1,5 @@
 #include "Filters.h"
 #include <cmath>
-#include <vips/VImage8.h>
 
 
 FiltersState* FiltersState::self_static_ = nullptr;
@@ -25,7 +24,6 @@ Filters& Filters::getInstace()
 
     return *self_static_;
 }
-
 
 void Filters::contrast(vips::VImage& image, const FiltersState& filters)
 {
@@ -99,4 +97,46 @@ vips::VImage Filters::update(vips::VImage image, const FiltersState& filters)
     gamma(image, filters);
 
     return image;
+}
+
+
+void Filters::saturation(vips::VImage& image, const FiltersState& filters)
+{
+    
+}
+void Filters::warmth(vips::VImage& image, const FiltersState& filters)
+{
+    
+}
+void Filters::tint(vips::VImage& image, const FiltersState& filters)
+{
+    
+}
+void Filters::highlight(vips::VImage& image, const FiltersState& filters)
+{
+    
+}
+void Filters::shadows(vips::VImage& image, const FiltersState& filters)
+{
+    
+}
+void Filters::white_black(vips::VImage& image, const FiltersState& filters)
+{
+    
+}
+void Filters::vibrance(vips::VImage& image, const FiltersState& filters)
+{
+    
+}
+void Filters::vignette(vips::VImage& image, const FiltersState& filters)
+{
+    
+}
+void Filters::clarity(vips::VImage& image, const FiltersState& filters)
+{
+    
+}
+void Filters::noise(vips::VImage& image, const FiltersState& filters)
+{
+    
 }

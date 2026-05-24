@@ -24,7 +24,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <vips/VImage8.h>
 #include <vips/resample.h>
 
 
