@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstddef>
+#include <exception>
 #include <gdkmm/pixbuf.h>
 #include <gdkmm/pixbufloader.h>
 #include <gdkmm/texture.h>
@@ -106,12 +107,16 @@ void ImageFrame::on_choose_image_clicked()
 
 void ImageFrame::on_save_clicked()
 {
+    if (!filters_.current_) {
+        return;
+    }
+
     const auto callback = sigc::mem_fun(*this, &ImageFrame::on_save_file_open);
   
     if (auto* window = dynamic_cast<Gtk::Window*>(get_root())) {
-      file_dialog_->open(*window, callback);
+      save_dialog_->save(*window, callback);
     } else {
-      file_dialog_->open(callback);
+      save_dialog_->save(callback);
     }
 }
 
@@ -128,7 +133,6 @@ void ImageFrame::on_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
         std::cout << path << '\n';
 
         auto start = std::chrono::high_resolution_clock::now();
-        // filters_.orginal_ = vips::VImage::new_from_file(path.c_str());
         filters_.orginal_ = vips::VImage::thumbnail(
             path.c_str(),
             MAX_IMAGE_HEIGHT,
@@ -199,7 +203,14 @@ void ImageFrame::render_current()
 
 void ImageFrame::on_save_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
 {
-    auto file = save_dialog_->save_finish(result);
+    Glib::RefPtr<Gio::File> file;
+
+    try {
+        file = save_dialog_->save_finish(result);
+    } catch (const std::exception error) {
+        std::cerr << "Save dialog failed: " << error.what() << '\n';
+        return;
+    }
 
     if (!file)
     {
@@ -213,7 +224,15 @@ void ImageFrame::on_save_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
         return;
     }
 
-    current_->write_to_file(path.c_str());
+    if (!filters_.current_) {
+        return;
+    }
+
+    try {
+        filters_.current_->write_to_file(path.c_str());
+    } catch (const std::exception& error) {
+        std::cerr << "Image save failed: " << error.what() << '\n';
+    }
 }
 
 void ImageFrame::on_save_image_clicked()
