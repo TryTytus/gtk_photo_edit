@@ -8,6 +8,7 @@
 #include <gtkmm/filedialog.h>
 #include <gtkmm/grid.h>
 #include <gtkmm/picture.h>
+#include <gtkmm/scrolledwindow.h>
 #include "image_frame.h"
 #include "sliders_frame.h"
 
@@ -24,6 +25,7 @@ private:
     Gtk::Grid box_;
     ImageFrame image_frame_;
     SlidersFrame sliders_frame_;
+    Gtk::ScrolledWindow scroll_window_{};
     FiltersState state_{};
 
     

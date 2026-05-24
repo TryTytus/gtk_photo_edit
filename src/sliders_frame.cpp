@@ -3,6 +3,7 @@
 
 #include <glibmm/main.h>
 #include <gtkmm/label.h>
+#include <gtkmm/scale.h>
 #include <sigc++/functors/mem_fun.h>
 
 SlidersFrame::SlidersFrame()
@@ -66,6 +67,18 @@ SlidersFrame::SlidersFrame()
     gamma_scale_.set_digits(2);
 
     brightness_scale_.set_size_request(300, 50);
+    
+    set_scale_default(saturation_scale_);
+    set_scale_default(warmth_scale_);
+    set_scale_default(tint_scale_);
+    set_scale_default(highlight_scale_);
+    set_scale_default(shadows_scale_);
+    set_scale_default(black_scale_);
+    set_scale_default(white_scale_);
+    set_scale_default(vibrance_scale_);
+    set_scale_default(vignette_scale_);
+    set_scale_default(clarity_scale_);
+    set_scale_default(noise_scale_);
 
     scale_.signal_value_changed().connect(
         sigc::mem_fun(*this, &SlidersFrame::on_scale_change)
@@ -95,6 +108,20 @@ SlidersFrame::SlidersFrame()
         sigc::mem_fun(*this, &SlidersFrame::on_gamma_scale_change)
     );
 
+
+    saturation_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_saturation_scale_change) );
+    warmth_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_warmth_scale_change) );
+    tint_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_tint_scale_change) );
+    highlight_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_highlight_scale_change) );
+    shadows_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_shadows_scale_change) );
+    black_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_black_scale_change) );
+    white_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_white_scale_change) );
+    vibrance_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_vibrance_scale_change) );
+    vignette_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_vignette_scale_change) );
+    clarity_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_clarity_scale_change) );
+    noise_scale_.signal_value_changed().connect( sigc::mem_fun(*this, &SlidersFrame::on_noise_scale_change) );
+
+
     add_css_class("image-bg");
     
     append(label_contrast_);
@@ -111,8 +138,39 @@ SlidersFrame::SlidersFrame()
     append(gamma_scale_);
     append(label_blur_);
     append(blur_scale_);
+
+    append(label_saturation_);
+    append(saturation_scale_);
+    append(label_warmth_);
+    append(warmth_scale_);
+    append(label_tint_);
+    append(tint_scale_);
+    append(label_highlight_);
+    append(highlight_scale_);
+    append(label_shadows_);
+    append(shadows_scale_);
+    append(label_black_);
+    append(black_scale_);
+    append(label_white_);
+    append(white_scale_);
+    append(label_vibrance_);
+    append(vibrance_scale_);
+    append(label_vignette_);
+    append(vignette_scale_);
+    append(label_clarity_);
+    append(clarity_scale_);
+    append(label_noise_);
+    append(noise_scale_);
 }
 
+void SlidersFrame::set_scale_default(Gtk::Scale& scale)
+{
+    scale.set_range(-1.0, 1.0);
+    scale.set_value(0.0);
+    scale.set_digits(2);
+
+    scale.set_size_request(300, 50);
+}
 
 void SlidersFrame::on_scale_change()
 {
@@ -156,6 +214,62 @@ void SlidersFrame::on_blur_scale_change()
 void SlidersFrame::on_gamma_scale_change()
 {
     state_.gamma = std::clamp(gamma_scale_.get_value(), 0.0, 1.0);
+    rerender();
+}
+
+void SlidersFrame::on_saturation_scale_change()
+{ 
+    state_.saturation = std::clamp(saturation_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_warmth_scale_change()
+{ 
+    state_.warmth = std::clamp(warmth_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_tint_scale_change()
+{ 
+    state_.tint = std::clamp(tint_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_highlight_scale_change()
+{ 
+    state_.highlight = std::clamp(highlight_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_shadows_scale_change()
+{ 
+    state_.shadows = std::clamp(shadows_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_black_scale_change()
+{ 
+    state_.black = std::clamp(black_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_white_scale_change()
+{ 
+    state_.white = std::clamp(white_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_vibrance_scale_change()
+{ 
+    state_.vibrance = std::clamp(vibrance_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_vignette_scale_change()
+{ 
+    state_.vignette = std::clamp(vignette_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_clarity_scale_change()
+{ 
+    state_.clarity = std::clamp(clarity_scale_.get_value(), -1.0, 1.0);
+    rerender();
+}
+void SlidersFrame::on_noise_scale_change()
+{ 
+    state_.noise = std::clamp(noise_scale_.get_value(), -1.0, 1.0);
     rerender();
 }
 

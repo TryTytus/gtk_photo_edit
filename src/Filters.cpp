@@ -96,30 +96,117 @@ vips::VImage Filters::update(vips::VImage image, const FiltersState& filters)
     blur(image, filters);
     gamma(image, filters);
 
+    saturation(image, filters);
+    warmth(image, filters);
+    tint(image, filters);
+    highlight(image, filters);
+    shadows(image, filters);
+    white_black(image, filters);
+    vibrance(image, filters);
+    vignette(image, filters);
+    clarity(image, filters);
+    noise(image, filters);
+
     return image;
 }
 
 
 void Filters::saturation(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (std::abs(filters.saturation) > 0.01) {
+        auto b = image.bandsplit();
+
+        auto gray = b[0] * 0.299 + b[1] * 0.587 + b[2] * 0.114;
+        auto gray3 = gray.bandjoin(gray).bandjoin(gray);
+
+        double s = filters.saturation;
+
+        double factor = s > 0.0
+            ? std::lerp(1.0, 2.3, s)
+            : std::lerp(1.0, 0.0, -s);
+
+        image = gray3 + (image - gray3) * factor;
+    }
 }
+
 void Filters::warmth(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (std::abs(filters.warmth) > 0.01) {
+        double t = filters.warmth;
+
+        image = image.linear(
+            std::vector<double>{
+                1.0 + 0.15 * t,  // red
+                1.0,             // green
+                1.0 - 0.15 * t   // blue
+            },
+            std::vector<double>{
+                0.0,
+                0.0,
+                0.0
+            }
+        );
+    }
 }
+
 void Filters::tint(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (std::abs(filters.tint) > 0.01) {
+        double t = filters.tint;
+
+        image = image.linear(
+            std::vector<double>{
+                1.0 + 0.08 * t,  // red
+                1.0 - 0.12 * t,  // green
+                1.0 + 0.08 * t   // blue
+            },
+            std::vector<double>{
+                0.0,
+                0.0,
+                0.0
+            }
+        );
+    }
 }
+
 void Filters::highlight(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (std::abs(filters.highlight) > 0.01) {
+        auto b = image.bandsplit();
+
+        auto gray = b[0] * 0.299 + b[1] * 0.587 + b[2] * 0.114;
+
+        auto mask = ((gray - 128.0) / 127.0).clamp(
+            vips::VImage::option()
+                ->set("min", 0.0)
+                ->set("max", 1.0)
+        );
+
+        auto mask3 = mask.bandjoin(mask).bandjoin(mask);
+
+        image = image + mask3 * filters.highlight * 80.0;
+    }
 }
+
 void Filters::shadows(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (std::abs(filters.shadows) > 0.01) {
+        auto b = image.bandsplit();
+
+        auto gray = b[0] * 0.299 + b[1] * 0.587 + b[2] * 0.114;
+
+        auto mask = ((128.0 - gray) / 128.0).clamp(
+            vips::VImage::option()
+                ->set("min", 0.0)
+                ->set("max", 1.0)
+        );
+
+        auto mask3 = mask.bandjoin(mask).bandjoin(mask);
+
+        image = image + mask3 * filters.shadows * 80.0;
+    }
 }
+
 void Filters::white_black(vips::VImage& image, const FiltersState& filters)
 {
     
@@ -130,13 +217,54 @@ void Filters::vibrance(vips::VImage& image, const FiltersState& filters)
 }
 void Filters::vignette(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (std::abs(filters.vignette) > 0.01) {
+        int width = image.width();
+        int height = image.height();
+
+        auto xy = vips::VImage::xyz(width, height);
+        auto b = xy.bandsplit();
+
+        auto x = b[0];
+        auto y = b[1];
+
+        double cx = width / 2.0;
+        double cy = height / 2.0;
+
+        auto dx = (x - cx) / cx;
+        auto dy = (y - cy) / cy;
+
+        auto dist = dx * dx + dy * dy;
+
+        auto mask = ((dist - 0.25) / 0.75).clamp(
+            vips::VImage::option()
+                ->set("min", 0.0)
+                ->set("max", 1.0)
+        );
+
+        auto mask3 = mask.bandjoin(mask).bandjoin(mask);
+
+        image = image - mask3 * filters.vignette * 120.0;
+    }
 }
+
 void Filters::clarity(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (std::abs(filters.clarity) > 0.01) {
+        auto blurred = image.gaussblur(3.0);
+        auto detail = image - blurred;
+
+        image = image + detail * filters.clarity * 1.5;
+    }
 }
+
 void Filters::noise(vips::VImage& image, const FiltersState& filters)
 {
-    
+    if (filters.noise > 0.01) {
+        double sigma = std::lerp(0.3, 2.0, filters.noise);
+
+        auto blurred = image.gaussblur(sigma);
+
+        image = image * (1.0 - filters.noise)
+              + blurred * filters.noise;
+    }
 }

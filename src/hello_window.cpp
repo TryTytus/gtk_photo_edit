@@ -33,7 +33,11 @@ HelloWindow::HelloWindow()
     image_frame_.set_hexpand(true);
     image_frame_.set_vexpand(true);
 
-    box_.attach(sliders_frame_, 1, 0, 1, 1);
+    scroll_window_.set_policy(Gtk::PolicyType::NEVER, Gtk::PolicyType::AUTOMATIC);
+    scroll_window_.set_vexpand(true);
+    scroll_window_.set_child(sliders_frame_);
+
+    box_.attach(scroll_window_, 1, 0, 1, 1);
     box_.attach(image_frame_, 0, 0, 1, 1);
 
     overlay_.set_child(background_);
