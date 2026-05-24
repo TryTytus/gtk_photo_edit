@@ -54,7 +54,7 @@ void Filters::sobel(vips::VImage& image, const FiltersState& filters)
 
 void Filters::brightness(vips::VImage &image, const FiltersState &filters)
 {
-    if (filters.brightness > 0.01)
+    if (filters.brightness > 0.01 || filters.brightness < -0.01)
     {
         double offset = filters.brightness * 100.0;
         image = image.linear(1.0, offset);
@@ -63,7 +63,7 @@ void Filters::brightness(vips::VImage &image, const FiltersState &filters)
 
 void Filters::exposure(vips::VImage &image, const FiltersState &filters)
 {
-    if (filters.exposure > 0.01)
+    if (filters.exposure > 0.01 || filters.exposure < -0.01)
     {
         double factor = std::pow(2.0, filters.exposure);
         image = image * factor;
@@ -86,9 +86,6 @@ void Filters::gamma(vips::VImage &image, const FiltersState &filters)
         ->set("exponent", exponent));
 
 }
-
-
-
 
 vips::VImage Filters::update(vips::VImage image, const FiltersState& filters)
 {

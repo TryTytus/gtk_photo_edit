@@ -8,17 +8,17 @@
 SlidersFrame::SlidersFrame()
     : state_(FiltersState::getInstance()),
       label_contrast_("Contrast"),
+      scale_(Gtk::Orientation::HORIZONTAL),
       label_sharpness_("Sharpness"),
-      label_brightness_("Brightness"),
       label_sobel_("Sobel effect"),
+      label_brightness_("Brightness"),
       label_exposure_("Exposure"),
       label_gamma_("Gamma"),
-      label_blur_("Blur"),
-      scale_(Gtk::Orientation::HORIZONTAL)
+      label_blur_("Blur")
 {
     set_orientation(Gtk::Orientation::VERTICAL);
 
-    scale_.set_range(0.0, 1.0);
+    scale_.set_range(-1, 1.0);
     scale_.set_value(0.0);
     scale_.set_digits(2);
 
@@ -39,7 +39,7 @@ SlidersFrame::SlidersFrame()
 
     sobel_scale_.set_size_request(300, 50);
 
-    brightness_scale_.set_range(0.0, 1.0);
+    brightness_scale_.set_range(-1.0, 1.0);
     brightness_scale_.set_value(0.0);
     brightness_scale_.set_digits(2);
 
@@ -47,7 +47,7 @@ SlidersFrame::SlidersFrame()
 
     
 
-    exposure_scale.set_range(0.0, 1.0);
+    exposure_scale.set_range(-1.0, 1.0);
     exposure_scale.set_value(0.0);
     exposure_scale.set_digits(2);
 
@@ -61,7 +61,7 @@ SlidersFrame::SlidersFrame()
     blur_scale_.set_size_request(300, 50);
 
 
-    gamma_scale_.set_range(0.0, 1.0);
+    gamma_scale_.set_range(0, 1.0);
     gamma_scale_.set_value(0.0);
     gamma_scale_.set_digits(2);
 
@@ -116,7 +116,7 @@ SlidersFrame::SlidersFrame()
 
 void SlidersFrame::on_scale_change()
 {
-    state_.contrast = std::clamp(scale_.get_value(), 0.0, 1.0);
+    state_.contrast = std::clamp(scale_.get_value(), -1.0, 1.0);
     rerender();
 }
 
@@ -135,14 +135,14 @@ void SlidersFrame::on_sobel_scale_change()
 
 void SlidersFrame::on_brightness_scale_change()
 {
-    state_.brightness = std::clamp(brightness_scale_.get_value(), 0.0, 1.0);
+    state_.brightness = std::clamp(brightness_scale_.get_value(), -1.0, 1.0);
     rerender();
 }
 
 
 void SlidersFrame::on_exposure_scale_change()
 {
-    state_.exposure = std::clamp(exposure_scale.get_value(), 0.0, 1.0);
+    state_.exposure = std::clamp(exposure_scale.get_value(), -1.0, 1.0);
     rerender();
 }
 
