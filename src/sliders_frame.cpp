@@ -2,9 +2,66 @@
 #include "Filters.h"
 
 #include <glibmm/main.h>
+#include <gtkmm/adjustment.h>
+#include <gtkmm/eventcontrollerscroll.h>
 #include <gtkmm/label.h>
 #include <gtkmm/scale.h>
+#include <gtkmm/scrolledwindow.h>
 #include <sigc++/functors/mem_fun.h>
+
+namespace
+{
+Gtk::ScrolledWindow* find_parent_scrolled_window(Gtk::Widget& widget)
+{
+    for (auto* parent = widget.get_parent(); parent; parent = parent->get_parent())
+    {
+        if (auto* scrolled_window = dynamic_cast<Gtk::ScrolledWindow*>(parent))
+        {
+            return scrolled_window;
+        }
+    }
+
+    return nullptr;
+}
+
+void scroll_adjustment(const Glib::RefPtr<Gtk::Adjustment>& adjustment, double delta)
+{
+    if (!adjustment)
+    {
+        return;
+    }
+
+    const double lower = adjustment->get_lower();
+    const double upper = std::max(lower, adjustment->get_upper() - adjustment->get_page_size());
+    adjustment->set_value(std::clamp(adjustment->get_value() + delta, lower, upper));
+}
+
+void disable_scroll_value_change(Gtk::Scale& scale)
+{
+    auto scroll = Gtk::EventControllerScroll::create();
+    scroll->set_flags(Gtk::EventControllerScroll::Flags::BOTH_AXES);
+    scroll->set_propagation_phase(Gtk::PropagationPhase::CAPTURE);
+    auto* scroll_controller = scroll.get();
+    scroll->signal_scroll().connect([&scale, scroll_controller](double dx, double dy) {
+        auto* scrolled_window = find_parent_scrolled_window(scale);
+        if (!scrolled_window)
+        {
+            return true;
+        }
+
+        if (scroll_controller->get_unit() == Gdk::ScrollUnit::WHEEL)
+        {
+            dx *= 48.0;
+            dy *= 48.0;
+        }
+
+        scroll_adjustment(scrolled_window->get_hadjustment(), dx);
+        scroll_adjustment(scrolled_window->get_vadjustment(), dy);
+        return true;
+    }, false);
+    scale.add_controller(scroll);
+}
+}
 
 SlidersFrame::SlidersFrame()
     : state_(FiltersState::getInstance()),
@@ -18,41 +75,26 @@ SlidersFrame::SlidersFrame()
       label_blur_("Blur")
 {
     set_orientation(Gtk::Orientation::VERTICAL);
-
-    scale_.set_range(-1, 1.0);
-    scale_.set_value(0.0);
-    scale_.set_digits(2);
-
     add_css_class("controls-panel");
 
-
-    scale_.set_size_request(300, 50);
+    set_scale_default(scale_);
 
     sharpness_scale_.set_range(0.0, 1.0);
     sharpness_scale_.set_value(0.0);
     sharpness_scale_.set_digits(2);
 
     sharpness_scale_.set_size_request(300, 50);
+    disable_scroll_value_change(sharpness_scale_);
 
     sobel_scale_.set_range(0.0, 1.0);
     sobel_scale_.set_value(0.0);
     sobel_scale_.set_digits(2);
 
     sobel_scale_.set_size_request(300, 50);
+    disable_scroll_value_change(sobel_scale_);
 
-    brightness_scale_.set_range(-1.0, 1.0);
-    brightness_scale_.set_value(0.0);
-    brightness_scale_.set_digits(2);
-
-    brightness_scale_.set_size_request(300, 50);
-
-    
-
-    exposure_scale.set_range(-1.0, 1.0);
-    exposure_scale.set_value(0.0);
-    exposure_scale.set_digits(2);
-
-    exposure_scale.set_size_request(300, 50);
+    set_scale_default(brightness_scale_);
+    set_scale_default(exposure_scale);
 
 
     blur_scale_.set_range(0.0, 1.0);
@@ -60,11 +102,13 @@ SlidersFrame::SlidersFrame()
     blur_scale_.set_digits(2);
 
     blur_scale_.set_size_request(300, 50);
+    disable_scroll_value_change(blur_scale_);
 
 
     gamma_scale_.set_range(0, 1.0);
     gamma_scale_.set_value(0.0);
     gamma_scale_.set_digits(2);
+    disable_scroll_value_change(gamma_scale_);
 
     brightness_scale_.set_size_request(300, 50);
     
@@ -163,6 +207,8 @@ SlidersFrame::SlidersFrame()
     append(noise_scale_);
 }
 
+
+
 void SlidersFrame::set_scale_default(Gtk::Scale& scale)
 {
     scale.set_range(-1.0, 1.0);
@@ -170,6 +216,9 @@ void SlidersFrame::set_scale_default(Gtk::Scale& scale)
     scale.set_digits(2);
 
     scale.set_size_request(300, 50);
+
+    disable_scroll_value_change(scale);
+
 }
 
 void SlidersFrame::on_scale_change()
@@ -280,4 +329,3 @@ void SlidersFrame::rerender()
         (*Filters::rerender)();
     }
 }
-
