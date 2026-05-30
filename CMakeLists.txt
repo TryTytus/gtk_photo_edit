@@ -47,6 +47,7 @@ pkg_check_modules(VIPS REQUIRED IMPORTED_TARGET vips-cpp)
 
 add_executable(gtk_second
   src/Filters.cpp
+  src/Worker.cpp
   src/sliders_frame.cpp
   src/image_frame.cpp
   src/hello_window.cpp

@@ -19,12 +19,15 @@
 #include <gtkmm/picture.h>
 #include <gtkmm/window.h>
 #include <iostream>
+#include <mutex>
 #include <sigc++/functors/mem_fun.h>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 #include <vips/resample.h>
+
 
 
 namespace {
@@ -176,12 +179,29 @@ void ImageFrame::set_sobel(double intensity)
 
 void ImageFrame::render_current()
 {
+    render_current_job();
+}
+
+void ImageFrame::render_current_job()
+{
     if (!filters_.orginal_) {
         return;
     }
     auto start = std::chrono::high_resolution_clock::now();
+
+    on_image_update();
+    // {
+    // std::mutex mtx {};
+    // std::lock_guard<std::mutex> lock {mtx};
     
-    filters_.current_ = filters_.update(*filters_.orginal_, state_);
+    // auto func = [this] {
+    //     filters_.current_ = filters_.update(*filters_.orginal_, state_);
+    // };
+
+    // std::thread worker{func};
+
+    // worker.join();
+    // }
 
     void* buffer = nullptr;
     size_t size { 0 };
@@ -237,4 +257,23 @@ void ImageFrame::on_save_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
 void ImageFrame::on_save_image_clicked()
 {
     
+}
+
+void ImageFrame::on_image_update()
+{
+    if (thread_)
+    {
+        worker_.stop_work(&orginal_.emplace());
+    }
+    else
+    {
+        thread_ = new std::thread([this] {
+            worker_.do_work(this);
+        });
+    }
+}
+
+void ImageFrame::notify()
+{
+    dispatcher_.emit();
 }
