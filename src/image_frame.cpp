@@ -53,6 +53,8 @@ ImageFrame::ImageFrame() :
   box_(Gtk::Orientation::VERTICAL, 12),
   choose_image_button_("Choose image"),
   save_image_button_("Save"),
+  thread_(nullptr),
+  render_again_(false),
   filters_(Filters::getInstace()),
   state_(FiltersState::getInstance())
 {
@@ -70,6 +72,7 @@ ImageFrame::ImageFrame() :
     save_image_button_.signal_clicked().connect(
         sigc::mem_fun(*this, &ImageFrame::on_save_clicked)
     );
+    dispatcher_.connect(sigc::mem_fun(*this, &ImageFrame::on_image_update));
 
     picture_.set_hexpand(true);
     picture_.set_vexpand(true);
@@ -94,6 +97,15 @@ ImageFrame::ImageFrame() :
 
 ImageFrame::~ImageFrame()
 {
+    if (thread_)
+    {
+        worker_.stop_work();
+        if (thread_->joinable()) {
+            thread_->join();
+        }
+        delete thread_;
+        thread_ = nullptr;
+    }
 }
 
 void ImageFrame::on_choose_image_clicked() 
@@ -187,37 +199,19 @@ void ImageFrame::render_current_job()
     if (!filters_.orginal_) {
         return;
     }
-    auto start = std::chrono::high_resolution_clock::now();
 
-    on_image_update();
-    // {
-    // std::mutex mtx {};
-    // std::lock_guard<std::mutex> lock {mtx};
-    
-    // auto func = [this] {
-    //     filters_.current_ = filters_.update(*filters_.orginal_, state_);
-    // };
+    if (thread_)
+    {
+        render_again_ = true;
+        worker_.stop_work();
+        return;
+    }
 
-    // std::thread worker{func};
-
-    // worker.join();
-    // }
-
-    void* buffer = nullptr;
-    size_t size { 0 };
-    filters_.current_->write_to_buffer(".png", &buffer, &size);
-
-    const auto bytes = Glib::Bytes::create(buffer, size);
-    g_free(buffer);
-    auto texture = Gdk::Texture::create_from_bytes(bytes);
-    picture_.set_paintable(texture);
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-        end - start
-    ).count();
-
-    std::cout << "Time to load: " << ms << " ms \n";
+    render_again_ = false;
+    worker_.begin_work();
+    thread_ = new std::thread([this] {
+        worker_.do_work(this);
+    });
 }
 
 void ImageFrame::on_save_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
@@ -261,16 +255,46 @@ void ImageFrame::on_save_image_clicked()
 
 void ImageFrame::on_image_update()
 {
+    if (!worker_.has_stopped()) {
+        return;
+    }
+
     if (thread_)
     {
-        worker_.stop_work(&orginal_.emplace());
+        if (thread_->joinable()) {
+            thread_->join();
+        }
+        delete thread_;
+        thread_ = nullptr;
     }
-    else
+
+    if (render_again_)
     {
-        thread_ = new std::thread([this] {
-            worker_.do_work(this);
-        });
+        render_current_job();
+        return;
     }
+
+    if (!filters_.current_) {
+        return;
+    }
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    void* buffer = nullptr;
+    size_t size { 0 };
+    filters_.current_->write_to_buffer(".png", &buffer, &size);
+
+    const auto bytes = Glib::Bytes::create(buffer, size);
+    g_free(buffer);
+    auto texture = Gdk::Texture::create_from_bytes(bytes);
+    picture_.set_paintable(texture);
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        end - start
+    ).count();
+
+    std::cout << "Time to load: " << ms << " ms \n";
 }
 
 void ImageFrame::notify()

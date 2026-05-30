@@ -16,7 +16,7 @@ public:
     void do_work(ImageFrame* caller);
 
     void get_data(vips::VImage*);
-    void stop_work(vips::VImage*);
+    void stop_work();
     bool has_stopped() const;
 
 private:

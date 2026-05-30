@@ -51,6 +51,7 @@ public:
     std::optional<vips::VImage> orginal_;
     std::optional<vips::VImage> current_;
     std::thread* thread_;
+    bool render_again_;
 
     
     Filters& filters_;
