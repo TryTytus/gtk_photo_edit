@@ -1,0 +1,184 @@
+name: CMake multi-platform
+
+on:
+  push:
+    branches: ["master"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["master"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu GCC
+            os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: Release
+            artifact_name: gtk-photo-edit-ubuntu-gcc
+            package_ext: tar.gz
+          - name: Ubuntu Clang
+            os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            build_type: Release
+            artifact_name: gtk-photo-edit-ubuntu-clang
+            package_ext: tar.gz
+          - name: Windows UCRT64
+            os: windows-latest
+            msystem: UCRT64
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: Release
+            artifact_name: gtk-photo-edit-windows-ucrt64
+            package_ext: zip
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Ubuntu dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            build-essential \
+            clang \
+            cmake \
+            libgtkmm-4.0-dev \
+            libvips-dev \
+            ninja-build \
+            pkg-config
+
+      - name: Install Windows dependencies
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gtkmm-4.0
+            mingw-w64-ucrt-x86_64-libvips
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+
+      - name: Set reusable paths
+        id: paths
+        run: |
+          echo "build-dir=build" >> "$GITHUB_OUTPUT"
+          echo "dist-dir=dist" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake on Ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          cmake -S . \
+            -B "${{ steps.paths.outputs.build-dir }}" \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
+            -DCMAKE_C_COMPILER="${{ matrix.c_compiler }}" \
+            -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}"
+
+      - name: Configure CMake on Windows
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          cmake -S . \
+            -B "${{ steps.paths.outputs.build-dir }}" \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" \
+            -DCMAKE_C_COMPILER="${{ matrix.c_compiler }}" \
+            -DCMAKE_CXX_COMPILER="${{ matrix.cpp_compiler }}"
+
+      - name: Build on Ubuntu
+        if: runner.os == 'Linux'
+        run: cmake --build "${{ steps.paths.outputs.build-dir }}" --config "${{ matrix.build_type }}"
+
+      - name: Build on Windows
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: cmake --build "${{ steps.paths.outputs.build-dir }}" --config "${{ matrix.build_type }}"
+
+      - name: Test on Ubuntu
+        if: runner.os == 'Linux'
+        working-directory: ${{ steps.paths.outputs.build-dir }}
+        run: ctest --build-config "${{ matrix.build_type }}" --output-on-failure
+
+      - name: Test on Windows
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        working-directory: ${{ steps.paths.outputs.build-dir }}
+        run: ctest --build-config "${{ matrix.build_type }}" --output-on-failure
+
+      - name: Package Ubuntu binary
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}"
+          cp "${{ steps.paths.outputs.build-dir }}/gtk_second" "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}/"
+          cp "${{ github.workspace }}/README.md" "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}/"
+          tar -czf "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}.${{ matrix.package_ext }}" \
+            -C "${{ steps.paths.outputs.dist-dir }}" \
+            "${{ matrix.artifact_name }}"
+
+      - name: Package Windows binary
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          mkdir -p "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}"
+          cp "${{ steps.paths.outputs.build-dir }}/gtk_second.exe" "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}/"
+          cp README.md "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}/"
+          ldd "${{ steps.paths.outputs.build-dir }}/gtk_second.exe" \
+            | awk '/ucrt64/ { print $3 }' \
+            | sort -u \
+            | xargs -I '{}' cp '{}' "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}/"
+
+      - name: Compress Windows package
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}/*" `
+            -DestinationPath "${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}.${{ matrix.package_ext }}" `
+            -Force
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ steps.paths.outputs.dist-dir }}/${{ matrix.artifact_name }}.${{ matrix.package_ext }}
+          if-no-files-found: error
+
+  release:
+    name: Publish release assets
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
