@@ -136,9 +136,9 @@ void Filters::warmth(vips::VImage& image, const FiltersState& filters)
 
         image = image.linear(
             std::vector<double>{
-                1.0 + 0.15 * t,  // red
-                1.0,             // green
-                1.0 - 0.15 * t   // blue
+                1.0 + 0.15 * t,
+                1.0,
+                1.0 - 0.15 * t
             },
             std::vector<double>{
                 0.0,
@@ -156,9 +156,9 @@ void Filters::tint(vips::VImage& image, const FiltersState& filters)
 
         image = image.linear(
             std::vector<double>{
-                1.0 + 0.08 * t,  // red
-                1.0 - 0.12 * t,  // green
-                1.0 + 0.08 * t   // blue
+                1.0 + 0.08 * t,
+                1.0 - 0.12 * t,
+                1.0 + 0.08 * t
             },
             std::vector<double>{
                 0.0,

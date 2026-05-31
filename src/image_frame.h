@@ -29,14 +29,12 @@ public:
 
     void on_save_clicked();
     void on_save_file_open(const Glib::RefPtr<Gio::AsyncResult>& result);
-    void on_save_image_clicked();
     void on_choose_image_clicked();
     void on_file_open(const Glib::RefPtr<Gio::AsyncResult>& result);
     void set_contrast(double contrast);
     void set_sharpness(double intensity);
     void set_sobel(double intensity);
     void render_current();
-    void render_current_job();
 
     void on_image_update();
 

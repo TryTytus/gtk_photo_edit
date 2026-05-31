@@ -189,12 +189,8 @@ void ImageFrame::set_sobel(double intensity)
     render_current();
 }
 
-void ImageFrame::render_current()
-{
-    render_current_job();
-}
 
-void ImageFrame::render_current_job()
+void ImageFrame::render_current()
 {
     if (!filters_.orginal_) {
         return;
@@ -248,11 +244,6 @@ void ImageFrame::on_save_file_open(const Glib::RefPtr<Gio::AsyncResult>& result)
     }
 }
 
-void ImageFrame::on_save_image_clicked()
-{
-    
-}
-
 void ImageFrame::on_image_update()
 {
     if (!worker_.has_stopped()) {
@@ -270,7 +261,7 @@ void ImageFrame::on_image_update()
 
     if (render_again_)
     {
-        render_current_job();
+        render_current();
         return;
     }
 
